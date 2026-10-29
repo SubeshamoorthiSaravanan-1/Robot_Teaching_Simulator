@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Robot Teaching Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Noto+Sans+Tamil:wght@400;600&family=Barlow:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e4e7e3;--panel:#f7f8f6;--ink:#1d2328;--mute:#5a656d;--line:#c3c9c4;--accent:#e0a800;--ok:#1f8a4c;--bad:#c62f2f;--hi:#2b3238;--hi-ink:#f2f4f1;--pend:#d9d3bd;--jog:#f4f1e4;--lcd:#b9d6a8;--lcdink:#16301a;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171b1e;--panel:#22282c;--ink:#eceeea;--mute:#9aa5ac;--line:#374045;--accent:#f2c200;--ok:#47c27a;--bad:#ff6b6b;--hi:#0f1315;--pend:#3a3d3e;--jog:#4a4f50;--lcd:#31472f;--lcdink:#c9f0b8}}
+:root[data-theme="dark"]{--bg:#171b1e;--panel:#22282c;--ink:#eceeea;--mute:#9aa5ac;--line:#374045;--accent:#f2c200;--ok:#47c27a;--bad:#ff6b6b;--hi:#0f1315;--pend:#3a3d3e;--jog:#4a4f50;--lcd:#31472f;--lcdink:#c9f0b8}
+*{box-sizing:border-box}html{color-scheme:light dark}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 Barlow,system-ui,sans-serif}
+.ta{font-family:"Noto Sans Tamil",Barlow,sans-serif;color:var(--mute);font-size:.9em}
+.wrap{max-width:1000px;margin:0 auto;padding:12px}
+header{background:var(--hi);color:var(--hi-ink);border-radius:10px;padding:12px 16px;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;justify-content:space-between;border-bottom:5px solid var(--accent)}
+h1{font:700 25px/1 "Barlow Condensed",sans-serif;margin:0}
+.stats{display:flex;gap:16px;font:600 14px "Barlow Condensed",sans-serif}.stats b{display:block;font-size:22px;line-height:1}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.seg{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
+.seg button{border:0;background:none;color:var(--ink);padding:8px 12px;border-radius:8px;font:600 15px Barlow,sans-serif;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--hi);color:var(--hi-ink)}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.main{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:12px}
+@media(max-width:820px){.main{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+#banner{border-left:6px solid var(--accent);background:var(--panel);border-radius:8px;padding:8px 12px;margin-bottom:10px}
+#banner b{font:700 18px "Barlow Condensed",sans-serif}
+canvas{width:100%;height:auto;display:block;background:var(--bg);border:1px solid var(--line);border-radius:8px}
+.chk{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:4px;font-size:14px}
+.chk li{display:flex;gap:8px;padding:4px 8px;border-radius:6px;color:var(--mute)}
+.chk li.d{color:var(--ink)}.chk li.d i{color:var(--ok)}.chk li.c{background:var(--bg);color:var(--ink);font-weight:600}
+.opbox{display:flex;gap:14px;align-items:center;justify-content:space-around;background:#8a9097;border-radius:10px;padding:12px;margin-bottom:12px;flex-wrap:wrap}
+.opbox>div{text-align:center;font:600 12px Barlow,sans-serif;color:#111}
+.es{width:62px;height:62px;border-radius:50%;border:6px solid #e8c200;background:#d62222;box-shadow:0 4px 0 #6d1010;cursor:pointer}
+.es.on{box-shadow:none;transform:translateY(3px);background:#8e1515}
+.sw{width:52px;height:52px;border-radius:50%;background:#15181a;border:3px solid #555;cursor:pointer;position:relative}
+.sw::after{content:"";position:absolute;left:21px;top:3px;width:6px;height:24px;background:#ddd;border-radius:3px;transform-origin:50% 22px;transform:rotate(var(--r,-45deg));transition:transform .15s}
+.btn{width:58px;height:44px;border-radius:8px;border:3px solid #333;cursor:pointer;font:700 11px Barlow;color:#111}
+.g{background:#3a4a3f}.g.on{background:#38e06a}.cs{background:#4b6;}
+.pend{background:var(--pend);border-radius:18px;padding:12px;border:2px solid var(--line)}
+.ptop{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font:600 12px Barlow}
+.scr{background:var(--lcd);color:var(--lcdink);font:600 13px/1.35 ui-monospace,Menlo,monospace;border-radius:6px;padding:8px;min-height:176px;border:3px solid #555}
+.scr .m{margin-top:6px;font-weight:700}.scr .m.bad{color:var(--bad)}
+.scr button{display:block;width:100%;text-align:left;background:none;border:1px solid var(--lcdink);color:var(--lcdink);margin:3px 0;padding:5px;font:inherit;cursor:pointer}
+.keys{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:10px}
+.k{background:var(--jog);color:var(--ink);border:1px solid #888;border-radius:6px;box-shadow:0 3px 0 #777;padding:10px 2px;font:700 13px Barlow;cursor:pointer;touch-action:none;user-select:none}
+.k:active{transform:translateY(2px);box-shadow:0 1px 0 #777}
+.k.w2{grid-column:span 2}.k.w3{grid-column:span 3}
+.fan .j{background:#2f6fd6;color:#fff;border-color:#1c4a98}
+.pk{width:34px;height:34px;border-radius:50%;background:#15181a;border:3px solid #555;cursor:pointer;position:relative;display:inline-block;vertical-align:middle}
+.pk::after{content:"";position:absolute;left:12px;top:2px;width:4px;height:14px;background:#ddd;transform-origin:50% 12px;transform:rotate(var(--r,-45deg))}
+#ov{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:16px}
+#ov div{background:var(--panel);border-radius:14px;padding:22px;text-align:center;max-width:380px}
+.stars{font-size:38px;color:var(--accent);letter-spacing:6px}
+.cta{background:var(--accent);color:#1d2328;border:0;border-radius:10px;padding:11px 20px;font:700 17px Barlow;cursor:pointer}
+.row input{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:600 15px Barlow,sans-serif;width:150px}
+@media print{header,.row,.main{display:none}#ov{position:static;background:none;display:flex!important}#again,#pr{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div><h1>Robot Teaching Simulator</h1><small>Elkayem Auto Ancillaries, Hosur Unit-II</small></div>
+<div class="stats"><div><b id="sp">1/11</b>step</div><div><b id="sm">0</b>mistakes</div><div><b id="stt">0:00</b>time</div></div></header>
+<div class="row">
+<div class="seg" id="rb"><button data-r="0">Yaskawa-type</button><button data-r="1">Fanuc</button></div>
+<div class="seg" id="gm"><button data-g="1">Guided</button><button data-g="0">Exam</button></div>
+<div class="seg"><button id="rs">Restart</button></div><div class="seg" id="lv"><button data-l="0">Easy</button><button data-l="1">Hard 2:30</button></div><input id="nm" placeholder="Trainee name" maxlength="24"><input id="id" placeholder="Employee ID" maxlength="10" style="width:110px"></div>
+<div class="main">
+<section>
+<div id="banner"></div>
+<canvas id="cv" width="560" height="300" aria-label="Robot work cell, top view and side view"></canvas>
+<ol class="chk" id="chk"></ol>
+</section>
+<section>
+<div class="opbox"><div><button class="es" id="es" aria-label="Emergency stop"></button><br>E-STOP</div>
+<div><button class="sw" id="op" aria-label="Mode key"></button><br><span id="opl">PLAYBACK</span></div>
+<div><button class="btn g" id="mo">MOTOR ON</button><br>OPERATION BOX</div>
+<div><button class="btn cs" id="cy">CYCLE START</button></div></div>
+<div class="pend yas" id="pend">
+<div class="ptop"><span>TEACH PENDANT</span><span>KEY <button class="pk" id="pk" aria-label="Pendant key"></button> <span id="pkl">OFF</span></span></div>
+<div class="scr" id="scr"></div>
+<div class="keys">
+<button class="k w2" id="kStep"></button><button class="k" id="kDn"></button><button class="k" id="kUp"></button><button class="k w2" id="kProg"></button>
+<button class="k j" data-j="x-">X−</button><button class="k j" data-j="x+">X+</button><button class="k j" data-j="y-">Y−</button><button class="k j" data-j="y+">Y+</button><button class="k j" data-j="z-">Z−</button><button class="k j" data-j="z+">Z+</button>
+<button class="k w2" id="kFwd"></button><button class="k w2" id="kBwd"></button><button class="k w2" id="kMod"></button><button class="k w2" id="kRst">RESET</button>
+</div></div>
+</section></div></div>
+<div id="ov"><div><div class="stars" id="stars"></div><h2 id="rt" style="margin:8px 0"></h2><p id="rd"></p><div id="lb" style="margin:10px 0;text-align:left"></div><button class="cta" id="again">Train again</button> <button class="cta" id="pr">Print sheet</button></div></div>
+<script>
+var $=function(i){return document.getElementById(i)},R=0,G=1,s,T0,LV=0,EV,EV2;
+var E=[["opkey","Switch the operation box key from Playback to Teach.","Operation box-ல் Key-ஐ Teach Mode-க்கு மாற்றவும்."],
+["pkey","Switch the teach pendant key ON.","Teach pendant-ல் Key-ஐ மாற்றவும்."],
+["step","Change movement from Continuous to Step.","Continuous-இலிருந்து Step Mode-க்கு மாற்றவும்."],
+["speed","Reduce the robot speed to 25% or less.","Robot வேகத்தை 25%-க்கு குறைக்கவும்."],
+["prog","Select program 2 (FIXTURE LOAD).","Program 2-ஐ தேர்ந்தெடுக்கவும்."],
+["motor","Press MOTOR ON on the operation box.","MOTOR ON பொத்தானை அழுத்தவும்."],
+["fwd","Press forward or backward once to check the robot moves under control.","Forward / Backward அழுத்தி சரிபார்க்கவும்."],
+["teach","Jog to each dashed point P1, P2, P3 with X Y Z and record it.","X, Y, Z மூலம் நகர்த்தி ஒவ்வொரு Point-ஐயும் பதிவு செய்யவும்."],
+["home","Step the robot back to the HOME position.","Robot-ஐ HOME நிலைக்கு நகர்த்தவும்."],
+["play","Switch the operation box key back to Playback.","Mode Key-ஐ Playback-க்கு மாற்றவும்."],
+["cycle","Press CYCLE START to run the auto cycle.","Cycle Start அழுத்தி Auto Cycle இயக்கவும்."]];
+var W={step:["STOP key","STEP key"],speed:["CHK.SPD key","Override +% / −% keys"],prog:["PROGRAM key","SELECT key"],fwd:["GO / BACK keys","FWD / BWD keys"],teach:["X Y Z keys, then MODIFY","X Y Z keys, then F5"],home:["GO / BACK keys","FWD / BWD keys"]};
+var LB=[{kStep:"STOP<br>CONT/STEP",kDn:"CHK<br>SPD",kUp:"",kProg:"PROGRAM",kFwd:"GO",kBwd:"BACK",kMod:"MODIFY"},{kStep:"STEP",kDn:"−%",kUp:"+%",kProg:"SELECT",kFwd:"FWD",kBwd:"BWD",kMod:"F5"}];
+var PG=["1  SWING ARM TEST","2  FIXTURE LOAD","3  DRUM SPARE"],SP=[10,25,50,100];
+var HOME={x:210,y:170,z:90},PT=[HOME,{x:130,y:170,z:60},{x:130,y:170,z:8},{x:290,y:170,z:30}];
+function init(){clearInterval(s&&s.tk);s={op:"PLAY",pk:0,step:0,sp:100,prog:0,menu:0,motor:0,es:0,x:210,y:170,z:90,pts:[HOME,0,0,0],idx:0,p:0,mis:0,msg:"Power on. Follow the procedure.",bad:0,anim:0,tok:0,part:{x:130,y:170,c:0},done:0};
+clearTimeout(EV);clearTimeout(EV2);T0=Date.now();s.tk=setInterval(function(){if(s.done)return;var t=Math.floor((Date.now()-T0)/1000),sh=LV?150-t:t;if(LV&&sh<=0){s.done=1;return fin(1)}$("stt").textContent=Math.floor(sh/60)+":"+("0"+sh%60).slice(-2);if(!s.evw&&s.p>=7&&s.motor){s.evw=1;EV=setTimeout(function(){if(s.done||s.es)return;s.ev=1;say("PERSON IN ROBOT ZONE! Press E-STOP now!",1);EV2=setTimeout(function(){if(s.ev){s.ev=0;s.mis+=2;say("Too late. Person was in the zone: +2 mistakes.",1)}},4000)},5000)}},500);$("ov").style.display="none";ui()}
+function lab(){var l=LB[R];for(var k in l){$(k).innerHTML=l[k]}$("kUp").style.visibility=R?"visible":"hidden";$("pend").className="pend "+(R?"fan":"yas");
+Array.prototype.forEach.call($("rb").children,function(b){b.setAttribute("aria-pressed",+b.dataset.r==R)});Array.prototype.forEach.call($("lv").children,function(b){b.setAttribute("aria-pressed",+b.dataset.l==LV)});Array.prototype.forEach.call($("gm").children,function(b){b.setAttribute("aria-pressed",+b.dataset.g==G)})}
+var AC;function beep(b){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();var o=AC.createOscillator(),v=AC.createGain();o.frequency.value=b?180:660;v.gain.value=.05;o.connect(v);v.connect(AC.destination);o.start();o.stop(AC.currentTime+(b?.25:.08))}catch(e){}}
+function say(m,b){s.msg=m;s.bad=!!b;beep(b);ui()}
+function act(id){if(s.done)return;var e=E[s.p];if(e&&e[0]==id){s.p++;s.msg="Correct. Step done.";s.bad=0}else{s.mis++;s.msg="Out of order. "+(G?"Next: "+e[1]:"Check the procedure.");s.bad=1}beep(s.bad);ui()}
+function ready(){var r=s.al?"ALARM: OVERTRAVEL. Press RESET, then MOTOR ON.":s.es?"E-STOP is pressed. Release it.":s.op!="TEACH"?"Mode key is not TEACH.":!s.pk?"Pendant key is OFF.":!s.motor?"MOTOR is OFF. Press MOTOR ON.":s.anim?"Robot is moving.":"";if(r)say(r,1);return!r}
+function ik(x,y){var dx=x-210,dy=y-40,d=Math.min(Math.hypot(dx,dy),199),a=Math.atan2(dy,dx),h=Math.acos(d/200);return[210+100*Math.cos(a+h),40+100*Math.sin(a+h)]}
+function clampP(){var dx=s.x-210,dy=s.y-40,d=Math.hypot(dx,dy);if(d>190){s.x=210+dx/d*190;s.y=40+dy/d*190}s.x=Math.max(10,Math.min(410,s.x));s.y=Math.max(70,Math.min(290,s.y));s.z=Math.max(0,Math.min(100,s.z))}
+function mv(t,ms,cb){var tk=++s.tok,a={x:s.x,y:s.y,z:s.z},t0=performance.now();s.anim=1;(function f(n){if(tk!=s.tok)return;var k=Math.min(1,(n-t0)/ms);k=k*k*(3-2*k);s.x=a.x+(t.x-a.x)*k;s.y=a.y+(t.y-a.y)*k;s.z=a.z+(t.z-a.z)*k;if(s.part.c){s.part.x=s.x;s.part.y=s.y}ui();if(k<1)requestAnimationFrame(f);else{s.anim=0;cb&&cb()}})(t0)}
+$("op").onclick=function(){if(s.es||s.anim)return;s.op=s.op=="PLAY"?"TEACH":"PLAY";s.motor=0;act(s.op=="TEACH"?"opkey":"play")};
+$("pk").onclick=function(){s.pk=!s.pk;if(s.pk)act("pkey");else ui()};
+$("es").onclick=function(){s.es=!s.es;if(s.es){s.motor=0;s.tok++;s.anim=0;s.part.c=0;if(s.ev){s.ev=0;clearTimeout(EV2);return say("Safe. E-STOP stopped the robot in time. Release it and press MOTOR ON.")}say("EMERGENCY STOP. Motor off. Release E-STOP to continue.",1)}else say("E-STOP released. Press MOTOR ON.")};
+$("mo").onclick=function(){if(s.es)return say("Release E-STOP first.",1);if(s.al)return say("Press RESET to clear the alarm first.",1);if(s.motor){s.motor=0;return say("Motor off.")}s.motor=1;if(s.op!="TEACH"&&s.p<9){s.mis++;return say("Motor on in wrong mode. Follow the procedure.",1)}act("motor")};
+$("kStep").onclick=function(){if(!s.pk||s.op!="TEACH")return say("Turn the mode keys to TEACH first.",1);s.step=!s.step;if(s.step)act("step");else say("Continuous mode. Switch back to STEP.",1)};
+function spd(d){if(!s.pk)return say("Pendant key is OFF.",1);var i=SP.indexOf(s.sp);i=R?Math.max(0,Math.min(3,i+d)):(i+d+4)%4;s.sp=SP[i];if(s.sp<=25)act("speed");else say("Speed "+s.sp+"%. Reduce to 25% or less.",1)}
+$("kDn").onclick=function(){spd(-1)};$("kUp").onclick=function(){spd(1)};
+$("kProg").onclick=function(){if(!s.pk)return say("Pendant key is OFF.",1);s.menu=1;ui()};
+$("kMod").onclick=function(){if(!ready())return;if(!s.prog)return say("No program selected.",1);var k=s.pts.indexOf(0);if(k<0)return say("All points are recorded.");var t=PT[k];if(LV&&s.sp>25){s.mis++;return say("Hard level: record points at 25% speed or less.",1)}if(Math.hypot(s.x-t.x,s.y-t.y)<12&&Math.abs(s.z-t.z)<9){s.pts[k]={x:s.x,y:s.y,z:s.z};s.idx=k;s.msg="POINT "+k+" RECORDED";s.bad=0;if(s.pts.indexOf(0)<0)act("teach");else{if(s.p<7){s.mis++;s.bad=1;s.msg="Recorded early. Follow the procedure."}ui()}}else say("Not on P"+k+". Move onto the dashed marker (X,Y) and height (Z).",1)};
+$("kRst").onclick=function(){if(!s.al)return say("No alarm to reset.");s.al=0;say("Alarm reset. Press MOTOR ON.")};
+function nav(d){if(!ready())return;if(s.p==6)act("fwd");var n=s.idx+d;if(n<0||n>3||!s.pts[n]){if(s.p!=6)say("No taught point in that direction.");else s.msg+=" (no next point yet)";return ui()}s.idx=n;mv(s.pts[n],700*Math.max(.5,100/s.sp/2),function(){if(n==0&&s.p==8)act("home");else ui()})}
+$("kFwd").onclick=function(){nav(1)};$("kBwd").onclick=function(){nav(-1)};
+$("cy").onclick=function(){if(s.es)return say("Release E-STOP.",1);if(s.op!="PLAY")return say("Mode key must be PLAYBACK.",1);if(!s.motor)return say("Press MOTOR ON.",1);if(s.pts.indexOf(0)>=0)return say("Program has untaught points.",1);if(s.p!=10){s.mis++;return say("Out of order. Complete the earlier steps.",1)}if(s.anim)return;s.p=11;s.msg="AUTO CYCLE RUNNING";s.bad=0;var q=[1,2,3,0],i=0;(function nx(){if(i>=4){s.done=1;return fin()}var n=q[i++];mv(PT[n],900,function(){if(n==2)s.part.c=1;if(n==3){s.part.c=0;s.part.x=PT[3].x;s.part.y=PT[3].y}nx()})})()};
+var jt;function jog(d){clearInterval(jt);jt=setInterval(function(){if(s.anim||s.es||s.al||s.op!="TEACH"||!s.pk||!s.motor)return;var v=.5+s.sp/100*3.5;if(d[0]=="x")s.x+=d[1]=="+"?v:-v;if(d[0]=="y")s.y+=d[1]=="+"?v:-v;if(d[0]=="z")s.z+=d[1]=="+"?v:-v;if(Math.hypot(s.x-210,s.y-40)>190){s.al=1;s.motor=0;clearInterval(jt);clampP();return say("ALARM: OVERTRAVEL. Press RESET, then MOTOR ON.",1)}clampP();ui()},30)}
+Array.prototype.forEach.call(document.querySelectorAll("[data-j]"),function(b){b.onpointerdown=function(e){b.setPointerCapture(e.pointerId);if(ready())jog(b.dataset.j)};b.onpointerup=b.onpointercancel=function(){clearInterval(jt)}});
+var KM={ArrowLeft:"x-",ArrowRight:"x+",ArrowUp:"y+",ArrowDown:"y-",PageUp:"z+",PageDown:"z-"};
+document.onkeydown=function(e){var j=KM[e.key];if(j&&!e.repeat&&e.target.tagName!="INPUT"){e.preventDefault();if(ready())jog(j)}};
+document.onkeyup=function(e){if(KM[e.key])clearInterval(jt)};
+$("lv").onclick=function(e){if(e.target.dataset.l!=null){LV=+e.target.dataset.l;lab();init()}};
+$("pr").onclick=function(){window.print()};
+$("rb").onclick=function(e){if(e.target.dataset.r!=null){R=+e.target.dataset.r;lab();init()}};
+$("gm").onclick=function(e){if(e.target.dataset.g!=null){G=+e.target.dataset.g;lab();ui()}};
+$("rs").onclick=$("again").onclick=init;
+function fin(f){var st=f?0:s.mis==0?3:s.mis<=2?2:1,t=Math.floor((Date.now()-T0)/1000),nm=(($("nm").value||"Trainee")+" ("+($("id").value||"-")+")").replace(/[<>&]/g,""),sc=f?0:Math.max(0,st*300-s.mis*20-t+(LV?200:0));$("stars").textContent="★".repeat(st)+"☆".repeat(3-st);$("rt").textContent=f?"Time up":st==3?"Perfect procedure":"Cycle complete";$("rd").textContent=nm+": "+s.mis+" mistakes, "+t+" s, score "+sc+". "+(LV?"Hard":"Easy")+", "+(G?"Guided":"Exam")+". "+new Date().toLocaleDateString();var L=[];try{L=JSON.parse(localStorage.getItem("rts-lb")||"[]");L.push({n:nm,s:sc});L.sort(function(a,b){return b.s-a.s});L=L.slice(0,5);localStorage.setItem("rts-lb",JSON.stringify(L))}catch(e){}$("lb").innerHTML="<b>Best scores</b>"+L.map(function(x,i){return "<div>"+(i+1)+". "+x.n+" - "+x.s+"</div>"}).join("");$("ov").style.display="flex";ui()}
+function ui(){
+$("opl").textContent=s.op=="PLAY"?"PLAYBACK":"TEACH";$("op").style.setProperty("--r",s.op=="PLAY"?"-45deg":"45deg");$("pk").style.setProperty("--r",s.pk?"45deg":"-45deg");$("pkl").textContent=s.pk?"ON":"OFF";
+$("mo").className="btn g"+(s.motor?" on":"");$("es").className="es"+(s.es?" on":"");
+$("sp").textContent=Math.min(s.p+1,11)+"/11";$("sm").textContent=s.mis;
+var e=E[s.p],w=e&&W[e[0]]?" ("+W[e[0]][R]+")":"";
+$("banner").innerHTML=s.p>=11?"<b>Cycle complete</b>":G?"<b>Step "+(s.p+1)+": "+e[1]+"</b><div class='ta'>"+e[2]+"</div><div style='color:var(--mute)'>"+(w?"Use: "+w.slice(2,-1):"")+"</div>":"<b>Exam mode</b><div class='ta'>Operate from memory. Wrong actions count as mistakes.</div>";
+$("chk").innerHTML=E.map(function(x,i){var d=i<s.p;return "<li class='"+(d?"d":i==s.p&&G?"c":"")+"'><i>"+(d?"✔":i+1)+"</i><span>"+(d||G?x[1]:"Step "+(i+1))+"</span></li>"}).join("");
+var h="";if(s.menu){h="PROGRAM SELECT"+PG.map(function(n,i){return "<button data-p='"+(i+1)+"'>"+n+"</button>"}).join("")}
+else{h="PROG "+(s.prog?PG[s.prog-1].slice(3):"-- NONE --")+"<br>"+(s.op=="TEACH"&&s.pk?"TEACH":"LOCKED")+" | "+(s.step?"STEP":"CONT")+" | SPD "+s.sp+"%<br>X"+s.x.toFixed(0)+" Y"+s.y.toFixed(0)+" Z"+s.z.toFixed(0)+(s.motor?" | MOTOR ON":" | MOTOR OFF")+"<br>"+["HOME","P1","P2","P3"].map(function(n,i){return (s.idx==i?"►":" ")+n+(s.pts[i]?"✔":"·")}).join(" ")+"<div class='m"+(s.bad?" bad":"")+"'>"+s.msg+"</div>"}
+$("scr").innerHTML=h;Array.prototype.forEach.call($("scr").querySelectorAll("button"),function(b){b.onclick=function(){s.menu=0;if(b.dataset.p==2){s.prog=2;act("prog")}else{s.mis++;say("Wrong program. Use program 2, FIXTURE LOAD.",1)}}});
+draw()}
+function draw(){var c=$("cv"),g=c.getContext("2d"),cs=getComputedStyle(document.documentElement),V=function(n){return cs.getPropertyValue(n).trim()},Y=function(y){return 300-y};
+g.clearRect(0,0,560,300);g.font="600 12px Barlow,sans-serif";g.lineCap="round";
+g.fillStyle=V("--panel");g.fillRect(0,0,420,300);g.strokeStyle=V("--line");g.lineWidth=1;for(var i=0;i<=420;i+=30){g.beginPath();g.moveTo(i,0);g.lineTo(i,300);g.stroke()}for(i=0;i<=300;i+=30){g.beginPath();g.moveTo(0,i);g.lineTo(420,i);g.stroke()}
+g.fillStyle=V("--mute");g.fillText("TOP VIEW (X, Y)",8,16);g.fillText("SIDE (Z)",470,16);
+g.strokeStyle=V("--mute");g.strokeRect(PT[3].x-20,Y(PT[3].y)-20,40,40);g.fillText("FIXTURE",PT[3].x-22,Y(PT[3].y)+36);
+for(var k=1;k<4;k++){var t=PT[k];g.setLineDash([4,3]);g.lineWidth=2;g.strokeStyle=s.pts[k]?V("--ok"):V("--accent");g.beginPath();g.arc(t.x,Y(t.y),12,0,7);g.stroke();g.setLineDash([]);if(k!=2){g.fillStyle=s.pts[k]?V("--ok"):V("--accent");g.fillText("P"+k,t.x+(k==1?-32:16),Y(t.y)-14)}}
+g.fillStyle=V("--mute");g.fillText("P2 PART",PT[2].x-26,Y(PT[2].y)+30);
+g.fillStyle=V("--ink");g.fillRect(s.part.x-9,Y(s.part.y)-9,18,18);
+var el=ik(s.x,s.y);g.strokeStyle=V("--hi");g.lineWidth=14;g.beginPath();g.moveTo(210,260);g.lineTo(el[0],Y(el[1]));g.lineTo(s.x,Y(s.y));g.stroke();
+g.fillStyle=V("--hi");g.beginPath();g.arc(210,260,16,0,7);g.fill();g.beginPath();g.arc(el[0],Y(el[1]),9,0,7);g.fill();
+g.fillStyle=V("--accent");g.strokeStyle=V("--hi");g.lineWidth=3;g.beginPath();g.arc(s.x,Y(s.y),9,0,7);g.fill();g.stroke();
+g.strokeStyle=V("--line");g.lineWidth=2;g.beginPath();g.moveTo(440,282);g.lineTo(550,282);g.stroke();g.strokeStyle=V("--mute");g.beginPath();g.moveTo(495,282);g.lineTo(495,50);g.stroke();
+for(k=0;k<4;k++){var zy=282-PT[k].z*2.2;g.strokeStyle=k&&!s.pts[k]?V("--accent"):V("--ok");if(!k)g.strokeStyle=V("--mute");g.beginPath();g.moveTo(468,zy);g.lineTo(522,zy);g.stroke();g.fillStyle=g.strokeStyle;g.fillText(k?"P"+k:"H",528,zy+4)}
+var gy=282-s.z*2.2;g.fillStyle=V("--accent");g.fillRect(480,gy-14,30,14);g.strokeStyle=V("--hi");g.lineWidth=3;g.beginPath();g.moveTo(484,gy);g.lineTo(484,gy+10);g.moveTo(506,gy);g.lineTo(506,gy+10);g.stroke();
+g.fillStyle=V("--ink");var py=s.part.c?gy+4:276;g.fillRect(489,py,12,8);
+if(s.ev){g.fillStyle=V("--bad");g.beginPath();g.arc(60,130,9,0,7);g.fill();g.fillRect(52,140,16,28);g.fillText("PERSON",36,184)}if(s.al){g.fillStyle=V("--bad");g.font="700 20px Barlow";g.fillText("ALARM: OVERTRAVEL",110,60)}if(s.es){g.fillStyle=V("--bad");g.font="700 22px Barlow";g.fillText("E-STOP",160,130)}}
+lab();init();
+</script>
+</body>
+</html>
